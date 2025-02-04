@@ -2,12 +2,6 @@ const request = require("supertest");
 const app = require("../service");
 const { Role, DB } = require("../database/database.js");
 
-if (process.env.VSCODE_INSPECTOR_OPTIONS) {
-  jest.setTimeout(60 * 1000 * 5); // 5 minutes
-}
-
-// const testUser = { name: "pizza diner", email: "reg@test.com", password: "a" };
-// let testUserAuthToken;
 let testAdmin;
 let testAdminAuthToken;
 
@@ -16,7 +10,6 @@ let testFranchiseId;
 
 beforeAll(async () => {
   testAdmin = await createAdminUser();
-  //   testUser.email = Math.random().toString(36).substring(2, 12) + "@test.com";
   const loginRes = await request(app).put("/api/auth").send(testAdmin);
   testAdminAuthToken = loginRes.body.token;
 
@@ -35,7 +28,6 @@ afterEach(async () => {
 });
 
 test("get all franchises", async () => {
-  // How do I test this in a way that works if there are zero franchises or multiple?
   const getFranchiseRes = await request(app).get("/api/franchise");
   expect(getFranchiseRes.status).toBe(200);
   const fetchedFranchise = getFranchiseRes.body.find(
@@ -70,19 +62,6 @@ test("create a franchise", async () => {
   expect(createFranchiseRes.body).toMatchObject(expectedFranchise);
 });
 
-// test("bad create a franchise", async () => {
-//   jest.spyOn("createFranchise").mockImplementation(async (franchise) => {
-//     return request(app)
-//       .post("/api/franchise")
-//       .send(franchise)
-//       .set("Authorization", `Bearer invalidToken`);
-//   });
-
-//   const badCreateFranchiseRes = await createFranchise(testFranchise);
-//   expect(badCreateFranchiseRes.status).toBe(401);
-//   expect(badCreateFranchiseRes.body).toMatchObject({ message: "invalid token" });
-// });
-
 test("delete a franchise", async () => {
   // FIXME - do I need to create a new test franchise first?
   const deleteFranchiseRes = await deleteFranchise(testFranchiseId);
@@ -97,13 +76,12 @@ test("create a store", async () => {
 
   let testStoreID = createStoreRes.body.id;
   const expectedStore = { ...testStore, id: testStoreID };
-  expect(createStoreRes.body).toMatchObject(expectedStore); // FIXME - update the testStore object to match the response
+  expect(createStoreRes.body).toMatchObject(expectedStore);
 
   await deleteStore(createStoreRes.body);
 });
 
 test("delete a store", async () => {
-  // FIXME - factor out the store creation
   let testStore = { franchiseId: testFranchiseId, name: randomName() };
   let testStoreID = (await createStore(testStore)).body.id;
   testStore.id = testStoreID;
@@ -116,7 +94,7 @@ test("delete a store", async () => {
 test("bad delete a store", async () => {
   let testStore = { id: 90, franchiseId: 5, name: randomName() };
 
-  jest.spyOn(DB, "getFranchise").mockImplementation(async (id) => {
+  jest.spyOn(DB, "getFranchise").mockImplementation(async () => {
     return false;
   });
 

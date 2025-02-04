@@ -105,14 +105,6 @@ function expectValidJwt(potentialJwt) {
   expect(potentialJwt).toMatch(/^[a-zA-Z0-9\-_]*\.[a-zA-Z0-9\-_]*\.[a-zA-Z0-9\-_]*$/);
 }
 
-function randomUser() {
-  return {
-    name: randomName(),
-    email: randomName() + "@test.com",
-    password: randomName()
-  };
-}
-
 function randomName() {
   return Math.random().toString(36).substring(2, 12);
 }
