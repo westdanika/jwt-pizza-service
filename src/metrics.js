@@ -1,4 +1,5 @@
 const config = require("./config");
+const metricBuilder = require("./metricBuilder");
 
 const requests = {};
 const requestMethods = {};
@@ -10,7 +11,7 @@ function requestTracker(req, res, next) {
   const endpoint = req.originalUrl;
   requests[endpoint] = (requests[endpoint] || 0) + 1;
   const method = req.method;
-  const status = res.statusCode;
+  //   const status = res.statusCode;
   // Do something useful with the method and status
   totalRequests += 1;
 
@@ -42,6 +43,10 @@ function getMemoryUsagePercentage() {
 
 function getActiveUsers() {
   // Replace with method of counting active users
+}
+
+function getLoginCount() {
+  // Replace with method of counting logins
 }
 
 function getSuccessfulLogins() {
@@ -140,9 +145,9 @@ function latencyMetrics(buf) {
 // }, 10000);
 
 function sendMetricsPeriodically(period) {
-  const timer = setInterval(() => {
+  setInterval(() => {
     try {
-      const buf = new MetricBuilder();
+      const buf = new metricBuilder.MetricBuilder();
       httpMetrics(buf);
       systemMetrics(buf);
       userMetrics(buf);
