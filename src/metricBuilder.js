@@ -44,7 +44,7 @@ class MetricBuilder {
   }
 
   // Method to build the final metrics payload (a string or object that can be sent to Grafana)
-  toString(separator = ",") {
+  toString() {
     // This will return a JSON string that matches Grafana's expected format for a metrics payload
     return JSON.stringify(this.metrics, null, 2); // Pretty-printing the JSON payload
   }
