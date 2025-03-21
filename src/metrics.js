@@ -1,18 +1,28 @@
 const config = require("./config");
-const metricBuilder = require("./metricBuilder");
+const MetricBuilder = require("./metricBuilder");
 
-const requests = {};
+// const requests = {};
 const requestMethods = {};
+const requestLatency = {};
+let pizzaLatency = 0;
 let totalRequests = 0;
+
+let activeUsers = 0;
+let successfulLogins = 0;
+let failedLogins = 0;
+let pizzasSold = 0;
+let pizzasFailed = 0;
+let pizzaRevenue = 0;
 
 const os = require("os");
 
 function requestTracker(req, res, next) {
+  const startTime = new Date();
+
   const endpoint = req.originalUrl;
-  requests[endpoint] = (requests[endpoint] || 0) + 1;
+  // requests[endpoint] = (requests[endpoint] || 0) + 1;
   const method = req.method;
-  //   const status = res.statusCode;
-  // Do something useful with the method and status
+  // const status = res.statusCode;
   totalRequests += 1;
 
   if (method === "GET") {
@@ -25,6 +35,12 @@ function requestTracker(req, res, next) {
     requestMethods["DELETE"] = (requestMethods["DELETE"] || 0) + 1;
   }
 
+  res.on("finish", () => {
+    const endTime = new Date();
+    const latency = endTime - startTime;
+    console.log(`Request to ${endpoint} took ${latency}ms`);
+    requestLatency[endpoint] = latency;
+  });
   next();
 }
 
@@ -41,113 +57,87 @@ function getMemoryUsagePercentage() {
   return memoryUsage.toFixed(2);
 }
 
-function getActiveUsers() {
-  // Replace with method of counting active users
+function addActiveUser() {
+  activeUsers += 1;
 }
 
-function getLoginCount() {
-  // Replace with method of counting logins
+function removeActiveUser() {
+  activeUsers -= 1;
 }
 
-function getSuccessfulLogins() {
-  // Replace with method of counting successful logins
+function addSuccessfulLogin() {
+  successfulLogins += 1;
 }
 
-function getFailedLogins() {
-  // Replace with method of counting failed logins
+function addFailedLogin() {
+  failedLogins += 1;
 }
 
-function getPizzasSold() {
-  // Replace with method of counting pizzas sold per minute
+function addPizzasSold(numPizzas = 1) {
+  pizzasSold += numPizzas;
 }
 
-function getPizzasFailed() {
-  // Replace with method of counting failed pizza creations
+function addPizzasFailed(numPizzas = 1) {
+  pizzasFailed += numPizzas;
 }
 
-function getPizzaRevenue() {
-  // Replace with method of calculating pizza revenue per minute
+function addPizzaRevenue(amount) {
+  pizzaRevenue += amount;
 }
 
-function getRequestLatency() {
-  // Replace with method of calculating request latency
+function updatePizzaLatency(latency) {
+  pizzaLatency = latency;
 }
-
-function getPizzaLatency() {
-  // Replace with method of calculating pizza creation latency
-}
-
 function httpMetrics(buf) {
-  //   const totalRequests = requests["/some-endpoint"] || 0; // Example of tracking requests to a specific endpoint
   const totalRequestsMetrics = totalRequests;
   const totalGetRequests = requestMethods["GET"] || 0;
   const totalPutRequests = requestMethods["PUT"] || 0;
   const totalPostRequests = requestMethods["POST"] || 0;
   const totalDeleteRequests = requestMethods["DELETE"] || 0;
-  // Track requests to get, put, post, delete individually
-  //   const totalErrors = requests["/error-endpoint"] || 0; // Example of tracking error requests
 
-  buf.addMetric("http_requests_total", totalRequestsMetrics, {});
+  buf.addMetric("http_requests_total", totalRequestsMetrics, "sum", "1", { method: "ALL" });
   // Add metric for get, put, post, delete individually
-  buf.addMetric("http_get_total", totalGetRequests, { method: "GET" });
-  buf.addMetric("http_put_total", totalPutRequests, { method: "PUT" });
-  buf.addMetric("http_post_total", totalPostRequests, { method: "POST" });
-  buf.addMetric("http_delete_total", totalDeleteRequests, { method: "DELETE" });
+  buf.addMetric("http_get_total", totalGetRequests, "sum", "1", { method: "GET" });
+  buf.addMetric("http_put_total", totalPutRequests, "sum", "1", { method: "PUT" });
+  buf.addMetric("http_post_total", totalPostRequests, "sum", "1", { method: "POST" });
+  buf.addMetric("http_delete_total", totalDeleteRequests, "sum", "1", { method: "DELETE" });
 }
 
 function systemMetrics(buf) {
   const cpuUsage = getCpuUsagePercentage();
   const memoryUsage = getMemoryUsagePercentage();
 
-  buf.addMetric("system_cpu_usage", cpuUsage, { source: "system" });
-  buf.addMetric("system_memory_usage", memoryUsage, { source: "system" });
+  buf.addMetric("system_cpu_usage", cpuUsage, "gauge", "%", { source: "system" });
+  buf.addMetric("system_memory_usage", memoryUsage, "gauge", "%", { source: "system" });
 }
 
 function userMetrics(buf) {
-  const activeUsers = getActiveUsers(); // Replace with method of counting active users
-  const loginCount = getLoginCount(); // Replace with method of counting logins
-
-  buf.addMetric("user_active_count", activeUsers, { source: "user" });
-  buf.addMetric("user_login_count", loginCount, { source: "user" });
+  buf.addMetric("user_active_count", activeUsers, "sum", "1", { source: "user" });
 }
 
 function purchaseMetrics(buf) {
-  const pizzasSold = getPizzasSold(); // Replace with method of counting purchases
-  const failedPizzas = getPizzasFailed(); // Replace with method of counting failed purchases
-  const pizzaRevenue = getPizzaRevenue(); // Replace with method of calculating total revenue
-
-  buf.addMetric("pizza_sold", pizzasSold, { source: "purchase" });
-  buf.addMetric("pizza_failed", failedPizzas, { source: "purchase" });
-  buf.addMetric("pizza_revenue", pizzaRevenue, { source: "purchase" });
+  buf.addMetric("pizza_sold", pizzasSold, "sum", "1", { source: "purchase" });
+  buf.addMetric("pizza_failed", pizzasFailed, "sum", "1", { source: "purchase" });
+  buf.addMetric("pizza_revenue", pizzaRevenue, "sum", "1.0", { source: "purchase" });
 }
 
 function authMetrics(buf) {
-  const successfulLogins = getSuccessfulLogins(); // Replace with method of counting successful logins
-  const failedLogins = getFailedLogins(); // Replace with method of counting failed logins
-
-  buf.addMetric("auth_successful_logins", successfulLogins, { source: "auth" });
-  buf.addMetric("auth_failed_logins", failedLogins, { source: "auth" });
+  buf.addMetric("auth_successful_logins", successfulLogins, "sum", "1", { source: "auth" });
+  buf.addMetric("auth_failed_logins", failedLogins, "sum", "1", { source: "auth" });
 }
 
 function latencyMetrics(buf) {
-  const requestLatency = getRequestLatency(); // Replace with method of calculating request latency (latency is the time it takes to process a request)
-  const pizzaLatency = getPizzaLatency(); // Replace with method of calculating pizza creation latency
+  Object.entries(requestLatency).forEach(([endpoint, latency]) => {
+    buf.addMetric("request_latency", latency, "gauge", "ms", { endpoint });
+  });
 
-  buf.addMetric("request_latency", requestLatency, { source: "latency" });
-  buf.addMetric("pizza_latency", pizzaLatency, { source: "latency" });
+  buf.addMetric("pizza_latency", pizzaLatency, "gauge", "ms", { source: "latency" });
 }
-
-// This will periodically send metrics to Grafana
-// const timer = setInterval(() => {
-//   Object.keys(requests).forEach((endpoint) => {
-//     sendMetricToGrafana("requests", requests[endpoint], { endpoint });
-//   });
-// }, 10000);
 
 function sendMetricsPeriodically(period) {
   setInterval(() => {
     try {
-      const buf = new metricBuilder.MetricBuilder();
+      const buf = new MetricBuilder();
       httpMetrics(buf);
       systemMetrics(buf);
       userMetrics(buf);
@@ -164,16 +154,26 @@ function sendMetricsPeriodically(period) {
 }
 
 function sendMetricsToGrafana(metrics) {
-  fetch(`${config.url}`, {
+  if (!config.metrics.url) {
+    console.error("Config URL is not defined."); // FIGURE OUT WHY ON EARTH JEST IS RUNNING TESTS AND GETTING HERE!!
+    return;
+  }
+
+  fetch(`${config.metrics.url}`, {
     method: "POST",
     body: metrics,
-    headers: { Authorization: `Bearer ${config.apiKey}`, "Content-Type": "application/json" }
+    headers: {
+      Authorization: `Bearer ${config.metrics.apiKey}`,
+      "Content-Type": "application/json"
+    }
   })
     .then((response) => {
       if (!response.ok) {
-        console.error("Failed to push metrics data to Grafana");
+        response.text().then((text) => {
+          console.error(`Failed to push metrics data to Grafana: ${text}\n`);
+        });
       } else {
-        console.log(`Pushed metrics`);
+        console.log(`Pushed metrics to Grafana`);
       }
     })
     .catch((error) => {
@@ -181,59 +181,15 @@ function sendMetricsToGrafana(metrics) {
     });
 }
 
-// function sendMetricToGrafana(metricName, metricValue, attributes) {
-//   attributes = { ...attributes, source: config.source };
-
-//   const metric = {
-//     resourceMetrics: [
-//       {
-//         scopeMetrics: [
-//           {
-//             metrics: [
-//               {
-//                 name: metricName,
-//                 unit: "1",   // Note that this will not work if you are trying to send float metrics
-//                 sum: {
-//                   dataPoints: [
-//                     {
-//                       asInt: metricValue,
-//                       timeUnixNano: Date.now() * 1000000,
-//                       attributes: []
-//                     }
-//                   ],
-//                   aggregationTemporality: "AGGREGATION_TEMPORALITY_CUMULATIVE",
-//                   isMonotonic: true
-//                 }
-//               }
-//             ]
-//           }
-//         ]
-//       }
-//     ]
-//   };
-
-//   Object.keys(attributes).forEach((key) => {
-//     metric.resourceMetrics[0].scopeMetrics[0].metrics[0].sum.dataPoints[0].attributes.push({
-//       key: key,
-//       value: { stringValue: attributes[key] }
-//     });
-//   });
-
-//   fetch(`${config.url}`, {
-//     method: "POST",
-//     body: JSON.stringify(metric),
-//     headers: { Authorization: `Bearer ${config.apiKey}`, "Content-Type": "application/json" }
-//   })
-//     .then((response) => {
-//       if (!response.ok) {
-//         console.error("Failed to push metrics data to Grafana");
-//       } else {
-//         console.log(`Pushed ${metricName}`);
-//       }
-//     })
-//     .catch((error) => {
-//       console.error("Error pushing metrics:", error);
-//     });
-// }
-
-module.exports = { requestTracker, sendMetricsPeriodically };
+module.exports = {
+  requestTracker,
+  sendMetricsPeriodically,
+  addActiveUser,
+  removeActiveUser,
+  addSuccessfulLogin,
+  addFailedLogin,
+  addPizzasSold,
+  addPizzasFailed,
+  addPizzaRevenue,
+  updatePizzaLatency
+};

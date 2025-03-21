@@ -18,7 +18,7 @@ app.use((req, res, next) => {
 });
 
 app.use(metrics.requestTracker); // Use the request tracker middleware
-metrics.sendMetricsPeriodically(); // Send metrics periodically
+metrics.sendMetricsPeriodically(500); // Send metrics every .5 seconds
 
 const apiRouter = express.Router();
 app.use("/api", apiRouter);
