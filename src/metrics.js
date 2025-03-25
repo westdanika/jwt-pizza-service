@@ -38,7 +38,6 @@ function requestTracker(req, res, next) {
   res.on("finish", () => {
     const endTime = new Date();
     const latency = endTime - startTime;
-    console.log(`Request to ${endpoint} took ${latency}ms`);
     requestLatency[endpoint] = latency;
   });
   next();
