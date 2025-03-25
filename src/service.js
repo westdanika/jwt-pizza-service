@@ -5,6 +5,7 @@ const franchiseRouter = require("./routes/franchiseRouter.js");
 const version = require("./version.json");
 const config = require("./config.js");
 const metrics = require("./metrics.js");
+const logger = require("./logger.js");
 
 const app = express();
 app.use(express.json());
@@ -19,6 +20,8 @@ app.use((req, res, next) => {
 
 app.use(metrics.requestTracker); // Use the request tracker middleware
 metrics.sendMetricsPeriodically(500); // Send metrics every .5 seconds
+
+app.use(logger.httpLogger); // Use the http logger middleware
 
 const apiRouter = express.Router();
 app.use("/api", apiRouter);
