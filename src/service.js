@@ -19,7 +19,7 @@ app.use((req, res, next) => {
 });
 
 app.use(metrics.requestTracker); // Use the request tracker middleware
-metrics.sendMetricsPeriodically(2000); // Send metrics every 2 seconds
+metrics.sendMetricsPeriodically(5000); // Send metrics every 2 seconds
 
 app.use(logger.httpLogger); // Use the http logger middleware
 
