@@ -12,7 +12,7 @@ class DB {
   }
 
   async getMenu() {
-    const connection = await this.getConnection();
+    const connection = await this.getConnection(); // Change this to cache a connection instead of creating a new one each time
     try {
       const rows = await this.query(connection, `SELECT * FROM menu`);
       return rows;
@@ -98,17 +98,22 @@ class DB {
   async updateUser(userId, email, password) {
     const connection = await this.getConnection();
     try {
-      const params = [];
+      const paramFields = [];
+      const paramValues = [];
       if (password) {
         const hashedPassword = await bcrypt.hash(password, 10);
-        params.push(`password='${hashedPassword}'`);
+        paramFields.push(`password=?`);
+        paramValues.push(hashedPassword);
       }
       if (email) {
-        params.push(`email='${email}'`);
+        paramFields.push(`email=?`);
+        paramValues.push(email);
       }
-      if (params.length > 0) {
-        const query = `UPDATE user SET ${params.join(", ")} WHERE id=${userId}`;
-        await this.query(connection, query);
+      if (paramFields.length > 0) {
+        paramValues.push(userId); // Add userId to the end of the array
+        const query = `UPDATE user SET ${paramFields.join(", ")} WHERE id=?`;
+        await this.query(connection, query, paramValues);
+        console.log("Update query:", query);
       }
       return this.getUser(email, password);
     } finally {
