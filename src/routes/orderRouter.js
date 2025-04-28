@@ -6,7 +6,7 @@ const { asyncHandler, StatusCodeError } = require('../endpointHelper.js');
 
 const orderRouter = express.Router();
 
-orderRouter.endpoints = [
+orderRouter.docs = [
   {
     method: 'GET',
     path: '/api/order/menu',

@@ -6,7 +6,7 @@ const { DB, Role } = require('../database/database.js');
 
 const authRouter = express.Router();
 
-authRouter.endpoints = [
+authRouter.docs = [
   {
     method: 'POST',
     path: '/api/auth',
@@ -20,14 +20,6 @@ authRouter.endpoints = [
     description: 'Login existing user',
     example: `curl -X PUT localhost:3000/api/auth -d '{"email":"a@jwt.com", "password":"admin"}' -H 'Content-Type: application/json'`,
     response: { user: { id: 1, name: '常用名字', email: 'a@jwt.com', roles: [{ role: 'admin' }] }, token: 'tttttt' },
-  },
-  {
-    method: 'PUT',
-    path: '/api/auth/:userId',
-    requiresAuth: true,
-    description: 'Update user',
-    example: `curl -X PUT localhost:3000/api/auth/1 -d '{"email":"a@jwt.com", "password":"admin"}' -H 'Content-Type: application/json' -H 'Authorization: Bearer tttttt'`,
-    response: { id: 1, name: '常用名字', email: 'a@jwt.com', roles: [{ role: 'admin' }] },
   },
   {
     method: 'DELETE',
@@ -95,23 +87,6 @@ authRouter.delete(
   asyncHandler(async (req, res) => {
     await clearAuth(req);
     res.json({ message: 'logout successful' });
-  })
-);
-
-// updateUser
-authRouter.put(
-  '/:userId',
-  authRouter.authenticateToken,
-  asyncHandler(async (req, res) => {
-    const { email, password } = req.body;
-    const userId = Number(req.params.userId);
-    const user = req.user;
-    if (user.id !== userId && !user.isRole(Role.Admin)) {
-      return res.status(403).json({ message: 'unauthorized' });
-    }
-
-    const updatedUser = await DB.updateUser(userId, email, password);
-    res.json(updatedUser);
   })
 );
 

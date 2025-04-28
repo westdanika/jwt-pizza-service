@@ -5,7 +5,7 @@ const { StatusCodeError, asyncHandler } = require('../endpointHelper.js');
 
 const franchiseRouter = express.Router();
 
-franchiseRouter.endpoints = [
+franchiseRouter.docs = [
   {
     method: 'GET',
     path: '/api/franchise',
