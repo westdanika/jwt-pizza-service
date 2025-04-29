@@ -1,7 +1,7 @@
 const express = require('express');
 const { asyncHandler } = require('../endpointHelper.js');
 const { DB, Role } = require('../database/database.js');
-const { authRouter } = require('./authRouter.js');
+const { authRouter, setAuth } = require('./authRouter.js');
 
 const userRouter = express.Router();
 
@@ -20,7 +20,7 @@ userRouter.docs = [
     requiresAuth: true,
     description: 'Update user',
     example: `curl -X PUT localhost:3000/api/user/1 -d '{"name":"常用名字", "email":"a@jwt.com", "password":"admin"}' -H 'Content-Type: application/json' -H 'Authorization: Bearer tttttt'`,
-    response: { id: 1, name: '常用名字', email: 'a@jwt.com', roles: [{ role: 'admin' }] },
+    response: { user: { id: 1, name: '常用名字', email: 'a@jwt.com', roles: [{ role: 'admin' }] }, token: 'tttttt' },
   },
 ];
 
@@ -29,8 +29,7 @@ userRouter.get(
   '/me',
   authRouter.authenticateToken,
   asyncHandler(async (req, res) => {
-    const user = await DB.getUser(req.user.id);
-    res.json(user);
+    res.json(req.user);
   })
 );
 
@@ -47,7 +46,8 @@ userRouter.put(
     }
 
     const updatedUser = await DB.updateUser(userId, name, email, password);
-    res.json(updatedUser);
+    const auth = await setAuth(updatedUser);
+    res.json({ user: updatedUser, token: auth });
   })
 );
 
