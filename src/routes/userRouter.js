@@ -19,7 +19,7 @@ userRouter.docs = [
     path: '/api/user/:userId',
     requiresAuth: true,
     description: 'Update user',
-    example: `curl -X PUT localhost:3000/api/user/1 -d '{"email":"a@jwt.com", "password":"admin"}' -H 'Content-Type: application/json' -H 'Authorization: Bearer tttttt'`,
+    example: `curl -X PUT localhost:3000/api/user/1 -d '{"name":"常用名字", "email":"a@jwt.com", "password":"admin"}' -H 'Content-Type: application/json' -H 'Authorization: Bearer tttttt'`,
     response: { id: 1, name: '常用名字', email: 'a@jwt.com', roles: [{ role: 'admin' }] },
   },
 ];
@@ -38,14 +38,14 @@ userRouter.put(
   '/:userId',
   authRouter.authenticateToken,
   asyncHandler(async (req, res) => {
-    const { email, password } = req.body;
+    const { name, email, password } = req.body;
     const userId = Number(req.params.userId);
     const user = req.user;
     if (user.id !== userId && !user.isRole(Role.Admin)) {
       return res.status(403).json({ message: 'unauthorized' });
     }
 
-    const updatedUser = await DB.updateUser(userId, email, password);
+    const updatedUser = await DB.updateUser(userId, name, email, password);
     res.json(updatedUser);
   })
 );

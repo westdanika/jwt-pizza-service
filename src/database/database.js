@@ -75,7 +75,7 @@ class DB {
     }
   }
 
-  async updateUser(userId, email, password) {
+  async updateUser(userId, name, email, password) {
     const connection = await this.getConnection();
     try {
       const params = [];
@@ -85,6 +85,9 @@ class DB {
       }
       if (email) {
         params.push(`email='${email}'`);
+      }
+      if (name) {
+        params.push(`name='${name}'`);
       }
       if (params.length > 0) {
         const query = `UPDATE user SET ${params.join(', ')} WHERE id=${userId}`;
