@@ -29,7 +29,8 @@ userRouter.get(
   '/me',
   authRouter.authenticateToken,
   asyncHandler(async (req, res) => {
-    res.json(req.user);
+    const user = await DB.getUser(req.user.id);
+    res.json(user);
   })
 );
 
