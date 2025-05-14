@@ -203,10 +203,20 @@ class DB {
     }
   }
 
-  async getFranchises(authUser) {
+  async getFranchises(authUser, page = 0, limit = 10, nameFilter = '*') {
     const connection = await this.getConnection();
+
+    const offset = page * limit;
+    nameFilter = nameFilter.replace(/\*/g, '%');
+
     try {
-      const franchises = await this.query(connection, `SELECT id, name FROM franchise`);
+      let franchises = await this.query(connection, `SELECT id, name FROM franchise WHERE name LIKE ? LIMIT ${limit + 1} OFFSET ${offset}`, [nameFilter]);
+
+      const more = franchises.length > limit;
+      if (more) {
+        franchises = franchises.slice(0, limit);
+      }
+
       for (const franchise of franchises) {
         if (authUser?.isRole(Role.Admin)) {
           await this.getFranchise(franchise);
@@ -214,7 +224,7 @@ class DB {
           franchise.stores = await this.query(connection, `SELECT id, name FROM store WHERE franchiseId=?`, [franchise.id]);
         }
       }
-      return franchises;
+      return [franchises, more];
     } finally {
       connection.end();
     }
