@@ -5,6 +5,7 @@ const { StatusCodeError } = require("../endpointHelper.js");
 const { Role } = require("../model/model.js");
 const dbModel = require("./dbModel.js");
 const logger = require("../logger.js");
+const { param } = require("../service.js");
 
 class DB {
   constructor() {
@@ -88,7 +89,7 @@ class DB {
     try {
       const userResult = await this.query(connection, `SELECT * FROM user WHERE email=?`, [email]);
       const user = userResult[0];
-      if (!user || !(await bcrypt.compare(password, user.password))) {
+      if (!user || (password && !(await bcrypt.compare(password, user.password)))) {
         throw new StatusCodeError("unknown user", 404);
       }
 
@@ -101,7 +102,7 @@ class DB {
 
       return { ...user, roles: roles, password: undefined };
     } finally {
-      connection.release();
+      connection.end();
     }
   }
 
@@ -124,7 +125,7 @@ class DB {
     }
   }
 
-  async updateUser(userId, email, password) {
+  async updateUser(userId, name, email, password) {
     const connection = await this.getConnection();
     try {
       const paramFields = [];
@@ -138,11 +139,14 @@ class DB {
         paramFields.push(`email=?`);
         paramValues.push(email);
       }
+      if (name) {
+        paramFields.push(`name=?`);
+        paramValues.push(name);
+      }
       if (paramFields.length > 0) {
         paramValues.push(userId); // Add userId to the end of the array
         const query = `UPDATE user SET ${paramFields.join(", ")} WHERE id=?`;
         await this.query(connection, query, paramValues);
-        console.log("Update query:", query);
       }
       return this.getUser(email, password);
     } finally {
@@ -154,10 +158,15 @@ class DB {
     token = this.getTokenSignature(token);
     const connection = await this.getConnection();
     try {
-      await this.query(connection, `INSERT INTO auth (token, userId) VALUES (?, ?)`, [
-        token,
-        userId
-      ]);
+      await this.query(
+        connection,
+        `INSERT INTO auth (token, userId) VALUES (?, ?) ON DUPLICATE KEY UPDATE token=token`,
+        [
+          // 20250826DW -  FIXME: check on duplicate key stuff
+          token,
+          userId
+        ]
+      );
     } finally {
       connection.release();
     }
@@ -288,10 +297,24 @@ class DB {
     }
   }
 
-  async getFranchises(authUser) {
+  async getFranchises(authUser, page = 0, limit = 10, nameFilter = "*") {
     const connection = await this.getConnection();
+
+    const offset = page * limit;
+    nameFilter = nameFilter.replace(/\*/g, "%");
+
     try {
-      const franchises = await this.query(connection, `SELECT id, name FROM franchise`);
+      let franchises = await this.query(
+        connection,
+        `SELECT id, name FROM franchise WHERE name LIKE ? LIMIT ${limit + 1} OFFSET ${offset}`,
+        [nameFilter]
+      );
+
+      const more = franchises.length > limit;
+      if (more) {
+        franchises = franchises.slice(0, limit);
+      }
+
       for (const franchise of franchises) {
         if (authUser?.isRole(Role.Admin)) {
           await this.getFranchise(franchise);
@@ -303,7 +326,7 @@ class DB {
           );
         }
       }
-      return franchises;
+      return [franchises, more];
     } finally {
       connection.release();
     }

@@ -7,7 +7,7 @@ const { DB, Role } = require("../database/database.js");
 const authRouter = express.Router();
 const metrics = require("../metrics.js");
 
-authRouter.endpoints = [
+authRouter.docs = [
   {
     method: "POST",
     path: "/api/auth",
@@ -147,4 +147,4 @@ function readAuthToken(req) {
   return null;
 }
 
-module.exports = { authRouter, setAuthUser };
+module.exports = { authRouter, setAuthUser, setAuth };

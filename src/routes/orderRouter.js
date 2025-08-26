@@ -8,7 +8,7 @@ const orderRouter = express.Router();
 const metrics = require("../metrics.js");
 const logger = require("../logger.js");
 
-orderRouter.endpoints = [
+orderRouter.docs = [
   {
     method: "GET",
     path: "/api/order/menu",
@@ -158,14 +158,14 @@ orderRouter.post(
     });
     const j = await r.json();
     if (r.ok) {
-      res.send({ order, reportSlowPizzaToFactoryUrl: j.reportUrl, jwt: j.jwt });
+      res.send({ order, followLinkToEndChaos: j.reportUrl, jwt: j.jwt });
       metrics.addPizzasSold(order.items.length);
       metrics.addPizzaRevenue(order.items.reduce((acc, item) => acc + item.price, 0));
     } else {
       metrics.addPizzasFailed(order.items.length);
       res.status(500).send({
         message: "Failed to fulfill order at factory",
-        reportPizzaCreationErrorToPizzaFactoryUrl: j.reportUrl
+        followLinkToEndChaos: j.reportUrl
       });
     }
 

@@ -5,13 +5,13 @@ const { StatusCodeError, asyncHandler } = require('../endpointHelper.js');
 
 const franchiseRouter = express.Router();
 
-franchiseRouter.endpoints = [
+franchiseRouter.docs = [
   {
     method: 'GET',
-    path: '/api/franchise',
+    path: '/api/franchise?page=0&limit=10&name=*',
     description: 'List all the franchises',
-    example: `curl localhost:3000/api/franchise`,
-    response: [{ id: 1, name: 'pizzaPocket', admins: [{ id: 4, name: 'pizza franchisee', email: 'f@jwt.com' }], stores: [{ id: 1, name: 'SLC', totalRevenue: 0 }] }],
+    example: `curl localhost:3000/api/franchise&page=0&limit=10&name=pizzaPocket`,
+    response: { franchises: [{ id: 1, name: 'pizzaPocket', admins: [{ id: 4, name: 'pizza franchisee', email: 'f@jwt.com' }], stores: [{ id: 1, name: 'SLC', totalRevenue: 0 }] }], more: true },
   },
   {
     method: 'GET',
@@ -59,7 +59,8 @@ franchiseRouter.endpoints = [
 franchiseRouter.get(
   '/',
   asyncHandler(async (req, res) => {
-    res.json(await DB.getFranchises(req.user));
+    const [franchises, more] = await DB.getFranchises(req.user, req.query.page, req.query.limit, req.query.name);
+    res.json({ franchises, more });
   })
 );
 
@@ -96,10 +97,6 @@ franchiseRouter.post(
 franchiseRouter.delete(
   '/:franchiseId',
   asyncHandler(async (req, res) => {
-    if (!req.user.isRole(Role.Admin)) {
-      throw new StatusCodeError('unable to delete a franchise', 403);
-    }
-
     const franchiseId = Number(req.params.franchiseId);
     await DB.deleteFranchise(franchiseId);
     res.json({ message: 'franchise deleted' });
