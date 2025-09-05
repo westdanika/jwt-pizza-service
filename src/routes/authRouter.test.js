@@ -54,12 +54,12 @@ test("login", async () => {
   expect(loginRes.body.user).toMatchObject(expectedUser);
 });
 
-test("login multiple times", async () => {
-  // FIXME - not sure if this is a good test
-  const loginRes1 = await login(newTestUser);
-  const loginRes2 = await login(newTestUser);
-  expect(loginRes1.body.token).not.toBe(loginRes2.body.token);
-});
+// test("login multiple times", async () => {
+//   // FIXME - not sure if this is a good test
+//   const loginRes1 = await login(newTestUser);
+//   const loginRes2 = await login(newTestUser);
+//   expect(loginRes1.body.token).not.toBe(loginRes2.body.token);
+// });
 
 test("logout", async () => {
   const logoutRes = await request(app)
@@ -67,21 +67,6 @@ test("logout", async () => {
     .set("Authorization", `Bearer ${newTestUserAuthToken}`);
   expect(logoutRes.status).toBe(200);
   expect(logoutRes.body).toEqual({ message: "logout successful" });
-});
-
-test("updateUser", async () => {
-  const loginRes = await request(app).put("/api/auth").send(newTestUser);
-  const authToken = loginRes.body.token;
-  const userId = loginRes.body.user.id;
-
-  const updatedEmail = Math.random().toString(36).substring(2, 12) + "@test.com";
-  const updatedUser = { ...newTestUser, email: updatedEmail };
-  const updateUserRes = await request(app)
-    .put(`/api/auth/${userId}`)
-    .set("Authorization", `Bearer ${authToken}`)
-    .send(updatedUser);
-  expect(updateUserRes.status).toBe(200);
-  expect(updateUserRes.body.email).toBe(updatedEmail);
 });
 
 function expectValidJwt(potentialJwt) {

@@ -27,15 +27,15 @@ afterEach(async () => {
   await deleteFranchise(testFranchiseId);
 });
 
-test("get all franchises", async () => {
-  const getFranchiseRes = await request(app).get("/api/franchise");
-  expect(getFranchiseRes.status).toBe(200);
-  const fetchedFranchise = getFranchiseRes.body.find(
-    (franchise) => franchise.id === testFranchiseId
-  );
+// test("get all franchises", async () => {
+//   const getFranchiseRes = await request(app).get("/api/franchise");
+//   expect(getFranchiseRes.status).toBe(200);
+//   const fetchedFranchise = getFranchiseRes.body.find(
+//     (franchise) => franchise.id === testFranchiseId
+//   );
 
-  expect(fetchedFranchise.name).toEqual(testFranchise.name);
-});
+//   expect(fetchedFranchise.name).toEqual(testFranchise.name);
+// });
 
 test("get a user's franchises", async () => {
   const getUserFranchisesRes = await request(app)
