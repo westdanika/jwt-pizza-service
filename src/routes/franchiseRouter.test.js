@@ -27,6 +27,11 @@ afterEach(async () => {
   await deleteFranchise(testFranchiseId);
 });
 
+afterAll(async () => {
+  await request(app).delete("/api/auth").set("Authorization", `Bearer ${testAdminAuthToken}`);
+  await DB.close();
+});
+
 // test("get all franchises", async () => {
 //   const getFranchiseRes = await request(app).get("/api/franchise");
 //   expect(getFranchiseRes.status).toBe(200);

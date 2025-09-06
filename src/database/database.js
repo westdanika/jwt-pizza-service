@@ -468,6 +468,10 @@ class DB {
     // return this._getConnection();
   }
 
+  async close() {
+    await this.pool.end();
+  }
+
   // async _getConnection(setUse = true) {
   //   const connection = await mysql.createConnection({
   //     host: config.db.connection.host,

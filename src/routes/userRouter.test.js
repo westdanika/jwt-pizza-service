@@ -1,19 +1,9 @@
 const request = require("supertest");
 const app = require("../service");
-// const { DB, Role } = require("../database/database.js");
-
-const testUser = { name: "pizza diner", email: "reg@test.com", password: "a" };
-let testUserAuthToken;
+const { DB } = require("../database/database.js");
 
 let newTestUser;
 let newTestUserAuthToken;
-
-beforeAll(async () => {
-  // testUser.email = Math.random().toString(36).substring(2, 12) + "@test.com";
-  const registerRes = await request(app).post("/api/auth").send(testUser);
-  testUserAuthToken = registerRes.body.token;
-  expectValidJwt(testUserAuthToken);
-});
 
 beforeEach(async () => {
   newTestUser = randomUser();
@@ -24,6 +14,10 @@ beforeEach(async () => {
 
 afterEach(async () => {
   await request(app).delete("/api/auth").set("Authorization", `Bearer ${newTestUserAuthToken}`);
+});
+
+afterAll(async () => {
+  await DB.close();
 });
 
 test("updateUser", async () => {

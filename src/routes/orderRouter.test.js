@@ -42,6 +42,12 @@ beforeEach(async () => {
   testItemId = addedItem.id;
 });
 
+afterAll(async () => {
+  await request(app).delete("/api/auth").set("Authorization", `Bearer ${testUserAuthToken}`);
+  await request(app).delete("/api/auth").set("Authorization", `Bearer ${testAdminAuthToken}`);
+  await DB.close();
+});
+
 test("get pizza menu", async () => {
   const getPizzaMenuRes = await request(app).get("/api/order/menu");
   expect(getPizzaMenuRes.status).toBe(200);
