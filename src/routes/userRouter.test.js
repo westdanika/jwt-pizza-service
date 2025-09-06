@@ -1,6 +1,6 @@
 const request = require("supertest");
 const app = require("../service");
-const { DB, Role } = require("../database/database.js");
+// const { DB, Role } = require("../database/database.js");
 
 const testUser = { name: "pizza diner", email: "reg@test.com", password: "a" };
 let testUserAuthToken;
@@ -48,7 +48,7 @@ test("list users unauthorized", async () => {
 });
 
 test("list users not admin", async () => {
-  const [user, userToken] = await registerUser(request(app));
+  const [, userToken] = await registerUser(request(app));
   const listUsersRes = await request(app)
     .get("/api/user")
     .set("Authorization", "Bearer " + userToken);
@@ -56,7 +56,7 @@ test("list users not admin", async () => {
 });
 
 test("list users", async () => {
-  const [user, userToken] = await loginAdmin(request(app));
+  const [, userToken] = await loginAdmin(request(app));
   const listUsersRes = await request(app)
     .get("/api/user")
     .set("Authorization", "Bearer " + userToken);
@@ -69,7 +69,7 @@ test("list users", async () => {
 });
 
 test("list users paginated", async () => {
-  const [user, userToken] = await loginAdmin(request(app));
+  const [, userToken] = await loginAdmin(request(app));
   const listUsersRes1 = await request(app)
     .get("/api/user?page=0&limit=5")
     .set("Authorization", "Bearer " + userToken);
@@ -91,7 +91,7 @@ test("list users paginated", async () => {
 });
 
 test("list users name filter", async () => {
-  const [user, userToken] = await loginAdmin(request(app));
+  const [, userToken] = await loginAdmin(request(app));
   const listUsersRes = await request(app)
     .get("/api/user?name=pizza diner")
     .set("Authorization", "Bearer " + userToken);
@@ -102,15 +102,15 @@ test("list users name filter", async () => {
 });
 
 test("delete user unauthorized", async () => {
-  const [user, userToken] = await registerUser(request(app));
+  const [user] = await registerUser(request(app));
 
   const deleteUserRes = await request(app).delete("/api/user/" + user.id);
   expect(deleteUserRes.status).toBe(401);
 });
 
 test("delete user", async () => {
-  const [user, userToken] = await registerUser(request(app));
-  const [admin, adminToken] = await loginAdmin(request(app));
+  const [user] = await registerUser(request(app));
+  const [, adminToken] = await loginAdmin(request(app));
 
   const deleteUserRes = await request(app)
     .delete("/api/user/" + user.id)
@@ -135,9 +135,9 @@ function randomName() {
   return Math.random().toString(36).substring(2, 12);
 }
 
-async function login(user) {
-  return request(app).put("/api/auth").send(user);
-}
+// async function login(user) {
+//   return request(app).put("/api/auth").send(user);
+// }
 
 async function register(user) {
   return request(app).post("/api/auth").send(user);
