@@ -2,44 +2,45 @@ const request = require("supertest");
 const app = require("../service");
 const { DB, Role } = require("../database/database.js");
 
-// const testUser = { name: "pizza diner", email: "reg@test.com", password: "a" };
-// let testUserAuthToken;
+const testUser = { name: "pizza diner", email: "reg@test.com", password: "a" };
+let testUserAuthToken;
 
 let newTestUser;
 let newTestUserAuthToken;
 
-// beforeAll(async () => {
-//   // testUser.email = Math.random().toString(36).substring(2, 12) + "@test.com";
-//   const registerRes = await request(app).post("/api/auth").send(testUser);
-//   testUserAuthToken = registerRes.body.token;
-//   expectValidJwt(testUserAuthToken);
-// });
+beforeAll(async () => {
+  // testUser.email = Math.random().toString(36).substring(2, 12) + "@test.com";
+  const registerRes = await request(app).post("/api/auth").send(testUser);
+  testUserAuthToken = registerRes.body.token;
+  expectValidJwt(testUserAuthToken);
+});
 
-// beforeEach(async () => {
-//   newTestUser = randomUser();
-//   const registerRes = await register(newTestUser);
-//   newTestUserAuthToken = registerRes.body.token;
-//   expectValidJwt(newTestUserAuthToken);
-// });
+beforeEach(async () => {
+  newTestUser = randomUser();
+  const registerRes = await register(newTestUser);
+  newTestUserAuthToken = registerRes.body.token;
+  expectValidJwt(newTestUserAuthToken);
+});
 
-// afterEach(async () => {
-//   await request(app).delete("/api/auth").set("Authorization", `Bearer ${newTestUserAuthToken}`);
-// });
+afterEach(async () => {
+  await request(app).delete("/api/auth").set("Authorization", `Bearer ${newTestUserAuthToken}`);
+});
 
-// test("updateUser", async () => {
-//   const loginRes = await request(app).put("/api/auth").send(newTestUser);
-//   const authToken = loginRes.body.token;
-//   const userId = loginRes.body.user.id;
+test("updateUser", async () => {
+  const loginRes = await request(app).put("/api/auth").send(newTestUser);
+  const authToken = loginRes.body.token;
+  const userId = loginRes.body.user.id;
 
-//   const updatedEmail = Math.random().toString(36).substring(2, 12) + "@test.com";
-//   const updatedUser = { ...newTestUser, email: updatedEmail };
-//   const updateUserRes = await request(app)
-//     .put(`/api/auth/${userId}`)
-//     .set("Authorization", `Bearer ${authToken}`)
-//     .send(updatedUser);
-//   expect(updateUserRes.status).toBe(200);
-//   expect(updateUserRes.body.email).toBe(updatedEmail);
-// });
+  const updatedEmail = Math.random().toString(36).substring(2, 12) + "@test.com";
+  const updatedUser = { ...newTestUser, email: updatedEmail };
+  const updateUserRes = await request(app)
+    .put(`/api/auth/${userId}`)
+    .set("Authorization", `Bearer ${authToken}`)
+    .send(updatedUser);
+  expect(updateUserRes.status).toBe(200);
+  expect(updateUserRes.body.email).toBe(updatedEmail);
+  expect(updateUserRes.body.name).toBe(newTestUser.name);
+});
 
 test("list users unauthorized", async () => {
   const listUsersRes = await request(app).get("/api/user");
@@ -138,9 +139,9 @@ async function login(user) {
   return request(app).put("/api/auth").send(user);
 }
 
-// async function register(user) {
-//   return request(app).post("/api/auth").send(user);
-// }
+async function register(user) {
+  return request(app).post("/api/auth").send(user);
+}
 
 async function loginAdmin(service) {
   const adminUser = {

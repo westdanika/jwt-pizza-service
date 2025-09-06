@@ -70,36 +70,36 @@ test("add item to pizza menu", async () => {
   expect(addedItem).toBeDefined();
 });
 
-// test("create orders", async () => {
-//   const testOrder = {
-//     franchiseId: 1,
-//     storeId: 1,
-//     items: [{ menuId: testItemId, description: testItem.title, price: testItem.price }]
-//   };
-//   const createOrderRes = await createOrder(testOrder);
-//   expect(createOrderRes.status).toBe(200);
-//   expect(createOrderRes.body.order).toMatchObject(testOrder);
-//   expectValidJwt(createOrderRes.body.jwt);
-// });
+test("create orders", async () => {
+  const testOrder = {
+    franchiseId: 1,
+    storeId: 1,
+    items: [{ menuId: testItemId, description: testItem.title, price: testItem.price }]
+  };
+  const createOrderRes = await createOrder(testOrder);
+  expect(createOrderRes.status).toBe(200);
+  expect(createOrderRes.body.order).toMatchObject(testOrder);
+  expectValidJwt(createOrderRes.body.jwt);
+});
 
-// test("get orders", async () => {
-//   const testOrder = {
-//     franchiseId: 1,
-//     storeId: 1,
-//     items: [{ menuId: testItemId, description: testItem.title, price: testItem.price }]
-//   };
-//   const createOrderRes = await createOrder(testOrder);
-//   testOrder.id = createOrderRes.body.order.id;
-//   expect(createOrderRes.status).toBe(200);
+test("get orders", async () => {
+  const testOrder = {
+    franchiseId: 1,
+    storeId: 1,
+    items: [{ menuId: testItemId, description: testItem.title, price: testItem.price }]
+  };
+  const createOrderRes = await createOrder(testOrder);
+  testOrder.id = createOrderRes.body.order.id;
+  expect(createOrderRes.status).toBe(200);
 
-//   const getOrdersRes = await request(app)
-//     .get("/api/order")
-//     .set("Authorization", `Bearer ${testUserAuthToken}`);
-//   expect(getOrdersRes.status).toBe(200);
-//   const fetchedOrder = getOrdersRes.body.orders.find((order) => order.id === testOrder.id);
-//   expect(fetchedOrder).toBeDefined();
-//   expect(fetchedOrder).toMatchObject(testOrder);
-// });
+  const getOrdersRes = await request(app)
+    .get("/api/order")
+    .set("Authorization", `Bearer ${testUserAuthToken}`);
+  expect(getOrdersRes.status).toBe(200);
+  const fetchedOrder = getOrdersRes.body.orders.find((order) => order.id === testOrder.id);
+  expect(fetchedOrder).toBeDefined();
+  expect(fetchedOrder).toMatchObject(testOrder);
+});
 
 function expectValidJwt(potentialJwt) {
   expect(potentialJwt).toMatch(/^[a-zA-Z0-9\-_]*\.[a-zA-Z0-9\-_]*\.[a-zA-Z0-9\-_]*$/);

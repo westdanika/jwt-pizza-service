@@ -112,14 +112,14 @@ authRouter.put(
   "/:userId",
   authRouter.authenticateToken,
   asyncHandler(async (req, res) => {
-    const { email, password } = req.body;
+    const { email, password, name } = req.body;
     const userId = Number(req.params.userId);
     const user = req.user;
     if (user.id !== userId && !user.isRole(Role.Admin)) {
       return res.status(403).json({ message: "unauthorized" });
     }
 
-    const updatedUser = await DB.updateUser(userId, email, password);
+    const updatedUser = await DB.updateUser(userId, name, email, password);
     res.json(updatedUser);
   })
 );

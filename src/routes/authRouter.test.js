@@ -85,9 +85,9 @@ function randomName() {
   return Math.random().toString(36).substring(2, 12);
 }
 
-async function login(user) {
-  return request(app).put("/api/auth").send(user);
-}
+// async function login(user) {
+//   return request(app).put("/api/auth").send(user);
+// }
 
 async function register(user) {
   return request(app).post("/api/auth").send(user);
