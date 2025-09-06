@@ -1,9 +1,18 @@
 const request = require("supertest");
 const app = require("../service");
-const { DB } = require("../database/database.js");
+const { DB, Role } = require("../database/database.js");
+
+let testAdmin;
+let testAdminAuthToken;
 
 let newTestUser;
 let newTestUserAuthToken;
+
+beforeAll(async () => {
+  testAdmin = await createAdminUser();
+  const loginRes = await request(app).put("/api/auth").send(testAdmin);
+  testAdminAuthToken = loginRes.body.token;
+});
 
 beforeEach(async () => {
   newTestUser = randomUser();
@@ -50,10 +59,9 @@ test("list users not admin", async () => {
 });
 
 test("list users", async () => {
-  const [, userToken] = await loginAdmin(request(app));
   const listUsersRes = await request(app)
     .get("/api/user")
-    .set("Authorization", "Bearer " + userToken);
+    .set("Authorization", "Bearer " + testAdminAuthToken);
   expect(listUsersRes.status).toBe(200);
   expect(Array.isArray(listUsersRes.body.users)).toBe(true);
   expect(listUsersRes.body.users.length).toBeGreaterThan(0);
@@ -63,10 +71,9 @@ test("list users", async () => {
 });
 
 test("list users paginated", async () => {
-  const [, userToken] = await loginAdmin(request(app));
   const listUsersRes1 = await request(app)
     .get("/api/user?page=0&limit=5")
-    .set("Authorization", "Bearer " + userToken);
+    .set("Authorization", "Bearer " + testAdminAuthToken);
   expect(listUsersRes1.status).toBe(200);
   expect(Array.isArray(listUsersRes1.body.users)).toBe(true);
   expect(listUsersRes1.body.users.length).toBeGreaterThan(0);
@@ -75,7 +82,7 @@ test("list users paginated", async () => {
   if (listUsersRes1.body.more) {
     const listUsersRes2 = await request(app)
       .get("/api/user?page=1&limit=5")
-      .set("Authorization", "Bearer " + userToken);
+      .set("Authorization", "Bearer " + testAdminAuthToken);
     expect(listUsersRes2.status).toBe(200);
     expect(Array.isArray(listUsersRes2.body.users)).toBe(true);
     expect(listUsersRes2.body.users.length).toBeGreaterThan(0);
@@ -85,10 +92,9 @@ test("list users paginated", async () => {
 });
 
 test("list users name filter", async () => {
-  const [, userToken] = await loginAdmin(request(app));
   const listUsersRes = await request(app)
     .get("/api/user?name=pizza diner")
-    .set("Authorization", "Bearer " + userToken);
+    .set("Authorization", "Bearer " + testAdminAuthToken);
   expect(listUsersRes.status).toBe(200);
   expect(Array.isArray(listUsersRes.body.users)).toBe(true);
   expect(listUsersRes.body.users.length).toBeGreaterThan(0);
@@ -104,11 +110,10 @@ test("delete user unauthorized", async () => {
 
 test("delete user", async () => {
   const [user] = await registerUser(request(app));
-  const [, adminToken] = await loginAdmin(request(app));
 
   const deleteUserRes = await request(app)
     .delete("/api/user/" + user.id)
-    .set("Authorization", "Bearer " + adminToken);
+    .set("Authorization", "Bearer " + testAdminAuthToken);
   expect(deleteUserRes.status).toBe(200);
   expect(deleteUserRes.body.message).toBe("User deleted");
 });
@@ -129,22 +134,17 @@ function randomName() {
   return Math.random().toString(36).substring(2, 12);
 }
 
-// async function login(user) {
-//   return request(app).put("/api/auth").send(user);
-// }
-
 async function register(user) {
   return request(app).post("/api/auth").send(user);
 }
 
-async function loginAdmin(service) {
-  const adminUser = {
-    email: "admin@jwt.com",
-    password: "d00m$lugMushrooms!"
-  };
-  const loginRes = await service.put("/api/auth").send(adminUser);
-  expectValidJwt(loginRes.body.token);
-  return [loginRes.body.user, loginRes.body.token];
+async function createAdminUser() {
+  let user = { password: "toomanysecrets", roles: [{ role: Role.Admin }] };
+  user.name = randomName();
+  user.email = user.name + "@admin.com";
+
+  user = await DB.addUser(user);
+  return { ...user, password: "toomanysecrets" };
 }
 
 async function registerUser(service) {
