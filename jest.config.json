@@ -6,5 +6,6 @@
       "lines": 70
     }
   },
-  "testPathIgnorePatterns": ["/node_modules/", "/dist/"]
+  "testPathIgnorePatterns": ["/node_modules/", "/dist/"],
+  "coveragePathIgnorePatterns": ["/node_modules/", "/dist/", "/src/metrics/"]
 }

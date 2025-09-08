@@ -1,4 +1,4 @@
-const config = require("./config");
+const config = require("../config");
 const MetricBuilder = require("./metricBuilder");
 
 // const requests = {};
